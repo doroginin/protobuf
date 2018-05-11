@@ -16,9 +16,12 @@ var ServerRouterTemplate = &Template{
 package {{ .Package }}
 
 import (
+	"fmt"
 	"strings"
 	"errors"
 	"net/http"
+
+	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 )
 
 func init() { {{ range $si, $service := .Services }}
@@ -30,18 +33,31 @@ type {{ $service.Name }}Router struct{
 }
 
 func (r *{{ $service.Name }}Router) Route(req *http.Request) (string, error) {
-	path := strings.Split(strings.Trim(req.URL.Path, "/"), "/")
-	{{ range $hi, $handler := $service.Handlers }}
+	components := strings.Split(strings.Trim(req.URL.Path, "/"), "/")
+	l := len(components)
+	var verb string
+	{{ range $handleri, $handler := $service.Handlers }}
 		{{ if $handler.Bindings }}
    			{{ range $bId, $binding := $handler.Bindings }}
-				// method: {{ $binding.HTTPMethod }}
+				if idx := strings.LastIndex(components[l-1], ":"); idx == 0 {
+					return "", errors.New("route is not found")
+				} else if idx > 0 {
+					c := components[l-1]
+					components[l-1], verb = c[:idx], c[idx+1:]
+				}
+				if _, err := pattern_{{ $service.Name }}_{{ $handler.Name }}_{{ $binding.Index }}.Match(components, verb); err == nil {
+					if req.Method != "{{ $binding.HTTPMethod }}" {
+						return "", fmt.Errorf("excepted %s method", "{{ $binding.HTTPMethod }}")
+					}
+					return "{{ $handler.Name }}", nil
+				}
 			{{ end }}
 		{{ else }}
-			if len(path) == 2 && path[0] == "{{ $service.Name }}" && path[1] == "{{ $handler.Name }}" {
+			if len(components) == 2 && components[0] == "{{ $service.Name }}" && components[1] == "{{ $handler.Name }}" {
 				if req.Method != "POST" {
 					return "", errors.New("excepted POST method")
 				}
-				return path[1], nil
+				return components[1], nil
 			}
 		{{ end }}
 	{{ end }}
@@ -49,4 +65,15 @@ func (r *{{ $service.Name }}Router) Route(req *http.Request) (string, error) {
 }
 
 {{ end }}
+
+var (
+	{{range $service := .Services}}
+	{{range $handler := $service.Handlers}}
+	{{range $binding := $handler.Bindings}}
+	pattern_{{ $service.Name }}_{{ $handler.Name }}_{{ $binding.Index }} = runtime.MustPattern(runtime.NewPattern({{ $binding.PathTmpl.Version }}, {{ $binding.PathTmpl.OpCodes | printf "%#v" }}, {{ $binding.PathTmpl.Pool | printf "%#v" }}, {{ $binding.PathTmpl.Verb | printf "%q" }}))
+	{{ end }}
+	{{ end }}
+	{{ end }}
+)
+
 `))}

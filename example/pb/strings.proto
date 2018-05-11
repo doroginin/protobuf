@@ -8,6 +8,9 @@ service Strings {
     rpc ToUpper (StringRequest) returns (StringResponse) {
         option (google.api.http) = {
 			get: "/strings/toUpper/{string}"
+			additional_bindings {
+			    get: "/v1/strings/toUpper/{string}"
+			}
 		};
     }
     rpc ToLower (StringRequest) returns (StringResponse) {}

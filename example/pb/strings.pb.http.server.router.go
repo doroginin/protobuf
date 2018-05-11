@@ -5,8 +5,11 @@ package strings
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"strings"
+
+	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 )
 
 func init() {
@@ -17,16 +20,48 @@ type StringsRouter struct {
 }
 
 func (r *StringsRouter) Route(req *http.Request) (string, error) {
-	path := strings.Split(strings.Trim(req.URL.Path, "/"), "/")
+	components := strings.Split(strings.Trim(req.URL.Path, "/"), "/")
+	l := len(components)
+	var verb string
 
-	// method: GET
+	if idx := strings.LastIndex(components[l-1], ":"); idx == 0 {
+		return "", errors.New("route is not found")
+	} else if idx > 0 {
+		c := components[l-1]
+		components[l-1], verb = c[:idx], c[idx+1:]
+	}
+	if _, err := pattern_Strings_ToUpper_0.Match(components, verb); err == nil {
+		if req.Method != "GET" {
+			return "", fmt.Errorf("excepted %s method", "GET")
+		}
+		return "ToUpper", nil
+	}
 
-	if len(path) == 2 && path[0] == "Strings" && path[1] == "ToLower" {
+	if idx := strings.LastIndex(components[l-1], ":"); idx == 0 {
+		return "", errors.New("route is not found")
+	} else if idx > 0 {
+		c := components[l-1]
+		components[l-1], verb = c[:idx], c[idx+1:]
+	}
+	if _, err := pattern_Strings_ToUpper_1.Match(components, verb); err == nil {
+		if req.Method != "GET" {
+			return "", fmt.Errorf("excepted %s method", "GET")
+		}
+		return "ToUpper", nil
+	}
+
+	if len(components) == 2 && components[0] == "Strings" && components[1] == "ToLower" {
 		if req.Method != "POST" {
 			return "", errors.New("excepted POST method")
 		}
-		return path[1], nil
+		return components[1], nil
 	}
 
 	return "", errors.New("route is not found")
 }
+
+var (
+	pattern_Strings_ToUpper_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"strings", "toUpper", "string"}, ""))
+
+	pattern_Strings_ToUpper_1 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"v1", "strings", "toUpper", "string"}, ""))
+)
