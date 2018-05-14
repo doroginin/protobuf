@@ -17,9 +17,9 @@ import (
 
 var (
 	verboseMode = flag.Bool("verbose", false, "Show debug information")
-	withImpl = flag.Bool("impl", true, "Generate simple implementations for proto Services")
+	withImpl    = flag.Bool("impl", true, "Generate simple implementations for proto Services")
 	withSwagger = flag.Bool("swagger", true, "Generate swagger docs")
-	withRouter = flag.Bool("router", true, "Generate http router for handlers")
+	withCodec   = flag.Bool("codec", true, "Generate http codec for handlers")
 )
 
 func parseReq(r io.Reader) (*plugin_go.CodeGeneratorRequest, error) {
@@ -87,8 +87,8 @@ func main() {
 		emitFiles(out)
 	}
 
-	if *withRouter {
-		out, err = g.GenerateRouter(targets)
+	if *withCodec {
+		out, err = g.GenerateCodec(targets)
 		if err != nil {
 			emitError(err)
 			return

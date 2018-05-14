@@ -17,13 +17,10 @@ package {{ .Package }}
 
 import (
 	"context"
-
-	"github.com/doroginin/protobuf/protoc-gen-go-http-server/codec"
 )
 
 func init() { {{ range $si, $service := .Services }}
 	default{{ $service.Name }}HTTPServerOptions.srv = &{{ $service.Name }}ServerImpl{}
-	default{{ $service.Name }}HTTPServerOptions.cdc = &codec.RESTCodec{}
 {{ end }} }
 
 {{ range $si, $service := .Services }}

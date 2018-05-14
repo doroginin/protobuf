@@ -41,16 +41,9 @@ func WithCodec(c types.Codec) {{ $service.Name }}HTTPServerOption {
 	}
 }
 
-func WithRouter(r types.Router) StringsHTTPServerOption {
-	return func(opts *_StringsHTTPServerOptions) {
-		opts.rtr = r
-	}
-}
-
 type _{{ $service.Name }}HTTPServerOptions struct{
 	srv {{ $service.Name }}Server
 	cdc types.Codec
-	rtr types.Router
 }
 
 var default{{ $service.Name }}HTTPServerOptions _{{ $service.Name }}HTTPServerOptions
@@ -74,20 +67,20 @@ func (s *{{ $service.Name }}HTTPServer) Handler(name string) (http.HandlerFunc, 
 }
 
 func (s *{{ $service.Name }}HTTPServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if s.opts.rtr == nil {
-		s.opts.cdc.WriteError(w, errors.New("router is not defined"))
+	if s.opts.cdc == nil {
+		s.opts.cdc.WriteResponse(w, nil, errors.New("Codec is not defined"))
 		return		
 	}
-	name, err := s.opts.rtr.Route(r)
+	r, method, _, err := s.opts.cdc.ReadRequest(r)
 	if err != nil {
-		s.opts.cdc.WriteError(w, err)
+		s.opts.cdc.WriteResponse(w, nil, err)
 		return
 	}
-	if handler, ok := s.handlers[name]; ok {
+	if handler, ok := s.handlers[method]; ok {
 		handler(w, r)
 		return
 	}
-	s.opts.cdc.WriteError(w, errors.New("handler is not found for request"))
+	s.opts.cdc.WriteResponse(w, nil, errors.New("handler is not found for request"))
 }
 
 {{ end }}`))}

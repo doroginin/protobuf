@@ -66,8 +66,8 @@ func (g *Generator) GenerateImpl(targets []*descriptor.File) (files []*plugin_go
 	return files, nil
 }
 
-func (g *Generator) GenerateRouter(targets []*descriptor.File) (files []*plugin_go.CodeGeneratorResponse_File, err error) {
-	ff, err := g.buildFiles(targets, ServerRouterTemplate)
+func (g *Generator) GenerateCodec(targets []*descriptor.File) (files []*plugin_go.CodeGeneratorResponse_File, err error) {
+	ff, err := g.buildFiles(targets, CodecTemplate)
 	if err != nil {
 		return nil, err
 	}
@@ -77,7 +77,7 @@ func (g *Generator) GenerateRouter(targets []*descriptor.File) (files []*plugin_
 
 func (g *Generator) buildFiles(targets []*descriptor.File, tmpl *Template) (files []*plugin_go.CodeGeneratorResponse_File, err error) {
 	for _, file := range targets {
-		log.Printf("Processing %s", file.GetName())
+		log.Printf("Processing %s -> %s", file.GetName(), fmt.Sprintf(tmpl.FileName, file.GetName()))
 
 		code, err := g.generateFrom(file, tmpl.Body)
 		if err == errNoTargetService {

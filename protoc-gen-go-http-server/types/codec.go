@@ -5,7 +5,6 @@ import (
 )
 
 type Codec interface {
-	ReadRequest(r *http.Request, out interface{}) error
-	WriteResponse(w http.ResponseWriter, resp interface{}) error
-	WriteError(w http.ResponseWriter, err error) error
+	ReadRequest(r *http.Request) (req *http.Request, method string, data interface{}, err error)
+	WriteResponse(w http.ResponseWriter, resp interface{}, err error) error
 }

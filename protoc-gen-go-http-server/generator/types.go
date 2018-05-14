@@ -7,7 +7,7 @@ import (
 
 type Template struct {
 	FileName string
-	Body *template.Template
+	Body     *template.Template
 }
 
 type templateFileInfo struct {

@@ -24,18 +24,17 @@ import (
 {{ range $hIdx, $handler := $service.Handlers }}
 func (s *{{ $service.Name }}HTTPServer) {{ $handler.Name }}(w http.ResponseWriter, r *http.Request) {
     defer r.Body.Close()
-	in := {{ $handler.In }}{}
-	err := s.opts.cdc.ReadRequest(r, &in)
+	r, _, in, err := s.opts.cdc.ReadRequest(r)
     if err != nil {
-        s.opts.cdc.WriteError(w, err)
+        s.opts.cdc.WriteResponse(w, nil, err)
 		return
     }
-	resp, err := s.opts.srv.{{ $handler.Name }}(r.Context(), &in)
+	resp, err := s.opts.srv.{{ $handler.Name }}(r.Context(), in.(*{{ $handler.In }}))
 	if err != nil {
-        s.opts.cdc.WriteError(w, err)
+        s.opts.cdc.WriteResponse(w, nil, err)
 		return
 	}
-	s.opts.cdc.WriteResponse(w, resp)
+	s.opts.cdc.WriteResponse(w, resp, nil)
 }
 {{ end }}
 {{ end }}`))}
