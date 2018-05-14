@@ -18,11 +18,11 @@ service Strings {
 	}
 }
 ```
-1. Run code generation
+2. Run code generation
 ```bash
 protoc -I. -I/usr/local/include  -I$GOPATH/src/github.com/grpc-ecosystem/grpc-gateway/third_party/googleapis --gofast_out=plugins=grpc:. --go-http-server_out=. strings.proto
 ```
-1. Write main file and run
+3. Write main file and run
 ```go
 package main
 
@@ -35,7 +35,7 @@ func main() {
 	http.ListenAndServe(":8080", strings.NewStringsHTTPServer())
 }
 ```
-1. Implement business logic in `strings.pb.server.impl.go`.
+4. Implement business logic in `strings.pb.server.impl.go`.
 Replace `return &String{}, nil` with `return &String{S: strings.ToUpper(req.S)}, nil` for example and rerun app.
 Check url: `http://localhost:8080/strings/upper/test` and you will get result:
 ```json
