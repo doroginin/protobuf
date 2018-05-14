@@ -34,7 +34,7 @@ func init() { {{ range $si, $service := .Services }}
 type {{ $service.Name }}Codec struct{
 }
 
-func (r *{{ $service.Name }}Codec) ReadRequest(req *http.Request) (*http.Request, string, interface{}, error) {
+func (c *{{ $service.Name }}Codec) ReadRequest(req *http.Request) (*http.Request, string, interface{}, error) {
 	if data, ok := _{{ $service.Name }}FromContext(req.Context()); ok {
 		return req, data.method, data.request, nil
 	}
@@ -86,6 +86,22 @@ func (r *{{ $service.Name }}Codec) ReadRequest(req *http.Request) (*http.Request
 	return req, "", nil, errors.New("method is not found")
 }
 
+func (c *{{ $service.Name }}Codec) WriteResponse(w http.ResponseWriter, resp interface{}, err error) error {
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		bResp, _ := json.Marshal(&defaultError{Error: err.Error()})
+		_, err = w.Write(bResp)
+		return err
+	}
+	bResp, err := json.Marshal(resp)
+	if err != nil {
+		return err
+	}
+	_, err = w.Write(bResp)
+	return err
+}
+
+
 type _{{ $service.Name }}CodecData struct {
 	method string
 	request interface{}
@@ -106,21 +122,6 @@ func _{{ $service.Name }}FromContext(ctx context.Context) (*_{{ $service.Name }}
 	}
 	d, ok := data.(*_{{ $service.Name }}CodecData)
 	return d, ok
-}
-
-func (c *{{ $service.Name }}Codec) WriteResponse(w http.ResponseWriter, resp interface{}, err error) error {
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		bResp, _ := json.Marshal(&defaultError{Error: err.Error()})
-		_, err = w.Write(bResp)
-		return err
-	}
-	bResp, err := json.Marshal(resp)
-	if err != nil {
-		return err
-	}
-	_, err = w.Write(bResp)
-	return err
 }
 
 {{ end }}

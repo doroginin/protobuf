@@ -68,7 +68,7 @@ func (s *{{ $service.Name }}HTTPServer) Handler(name string) (http.HandlerFunc, 
 
 func (s *{{ $service.Name }}HTTPServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if s.opts.cdc == nil {
-		s.opts.cdc.WriteResponse(w, nil, errors.New("Codec is not defined"))
+		s.opts.cdc.WriteResponse(w, nil, errors.New("codec is not defined"))
 		return		
 	}
 	r, method, _, err := s.opts.cdc.ReadRequest(r)
@@ -76,7 +76,7 @@ func (s *{{ $service.Name }}HTTPServer) ServeHTTP(w http.ResponseWriter, r *http
 		s.opts.cdc.WriteResponse(w, nil, err)
 		return
 	}
-	if handler, ok := s.handlers[method]; ok {
+	if handler, ok := s.Handler(method); ok {
 		handler(w, r)
 		return
 	}
