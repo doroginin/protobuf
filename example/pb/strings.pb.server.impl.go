@@ -5,6 +5,7 @@ package strings
 
 import (
 	"context"
+	"strings"
 )
 
 func init() {
@@ -14,11 +15,9 @@ func init() {
 type StringsServerImpl struct{}
 
 func (s *StringsServerImpl) ToUpper(ctx context.Context, req *StringRequest) (*StringResponse, error) {
-	// TODO: implement me
-	return &StringResponse{}, nil
+	return &StringResponse{Str: strings.ToUpper(req.Str)}, nil
 }
 
 func (s *StringsServerImpl) ToLower(ctx context.Context, req *StringRequest) (*StringResponse, error) {
-	// TODO: implement me
-	return &StringResponse{}, nil
+	return &StringResponse{Str: strings.ToLower(req.Str)}, nil
 }

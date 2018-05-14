@@ -123,11 +123,11 @@ func (c *{{ $service.Name }}Codec) WriteResponse(w http.ResponseWriter, resp int
 	return err
 }
 
+{{ end }}
+
 type defaultError struct {
 	Error string ` + "`json:\"error\"`" + `
 }
-
-{{ end }}
 
 var (
 	{{range $service := .Services}}

@@ -5,6 +5,47 @@ go get -u github.com/doroginin/protobuf/protoc-gen-go-http-server
 ```
 
 # Usage
+1. Write your proto file `strings/strings.proto`:
+```proto
+service Strings {
+	message String {
+		string s = 1;
+	}
+	rpc ToUpper (String) returns (String) {
+		option (google.api.http) = {
+			get: "/strings/upper/{string}"
+		};
+	}
+}
+```
+1. Run code generation
+```bash
+protoc -I. -I/usr/local/include  -I$GOPATH/src/github.com/grpc-ecosystem/grpc-gateway/third_party/googleapis --gofast_out=plugins=grpc:. --go-http-server_out=. strings.proto
+```
+1. Write main file and run
+```go
+package main
+
+import (
+	"net/http"
+	"strings"
+)
+
+func main() {
+	http.ListenAndServe(":8080", strings.NewStringsHTTPServer())
+}
+```
+1. Implement business logic in `strings.pb.server.impl.go`.
+Replace `return &String{}, nil` with `return &String{S: strings.ToUpper(req.S)}, nil` for example and rerun app.
+Check url: `http://localhost:8080/strings/upper/test` and you will get result:
+```json
+{
+	"s": "TEST"
+}
+```
+Profit
+
+# More options
 Available `protoc-gen-go-http-server` options:
 - `verbose` - `bool`, show debug info, default `false`
 - `impl` - `bool`, generate server implementation stub, default `true`
@@ -13,11 +54,7 @@ Available `protoc-gen-go-http-server` options:
 
 using: `protoc --go-http-server_out=verbose=true,impl=false,swagger=false,codec=false:. my.proto`
 
-```bash
-protoc -I. -I/usr/local/include  -I$GOPATH/src/github.com/grpc-ecosystem/grpc-gateway/third_party/googleapis --gofast_out=plugins=grpc:. --go-http-server_out=. strings.proto
-```
-
-# todo
+# TODO
  - swagger gen
  - middleware
  - grpc server gen
