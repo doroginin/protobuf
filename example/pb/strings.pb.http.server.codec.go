@@ -21,7 +21,7 @@ func init() {
 type StringsCodec struct {
 }
 
-func (r *StringsCodec) ReadRequest(req *http.Request) (*http.Request, string, interface{}, error) {
+func (c *StringsCodec) ReadRequest(req *http.Request) (*http.Request, string, interface{}, error) {
 	if data, ok := _StringsFromContext(req.Context()); ok {
 		return req, data.method, data.request, nil
 	}
@@ -89,6 +89,21 @@ func (r *StringsCodec) ReadRequest(req *http.Request) (*http.Request, string, in
 	return req, "", nil, errors.New("method is not found")
 }
 
+func (c *StringsCodec) WriteResponse(w http.ResponseWriter, resp interface{}, err error) error {
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		bResp, _ := json.Marshal(&defaultError{Error: err.Error()})
+		_, err = w.Write(bResp)
+		return err
+	}
+	bResp, err := json.Marshal(resp)
+	if err != nil {
+		return err
+	}
+	_, err = w.Write(bResp)
+	return err
+}
+
 type _StringsCodecData struct {
 	method  string
 	request interface{}
@@ -109,21 +124,6 @@ func _StringsFromContext(ctx context.Context) (*_StringsCodecData, bool) {
 	}
 	d, ok := data.(*_StringsCodecData)
 	return d, ok
-}
-
-func (c *StringsCodec) WriteResponse(w http.ResponseWriter, resp interface{}, err error) error {
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		bResp, _ := json.Marshal(&defaultError{Error: err.Error()})
-		_, err = w.Write(bResp)
-		return err
-	}
-	bResp, err := json.Marshal(resp)
-	if err != nil {
-		return err
-	}
-	_, err = w.Write(bResp)
-	return err
 }
 
 type defaultError struct {

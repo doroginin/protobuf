@@ -14,6 +14,7 @@ type templateFileInfo struct {
 	Source   string
 	Package  string
 	Services []*templateService
+	Fields   map[string]interface{}
 }
 
 type templateService struct {
@@ -27,4 +28,10 @@ type templateHandler struct {
 	In       string
 	Out      string
 	Bindings []*descriptor.Binding
+}
+
+type TemplateField struct {
+	FileName string
+	Key string
+	Value interface{}
 }

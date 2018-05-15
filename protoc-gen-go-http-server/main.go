@@ -13,6 +13,7 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway/descriptor"
 	"github.com/doroginin/protobuf/protoc-gen-go-http-server/generator"
 	"fmt"
+	"github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger/genswagger"
 )
 
 var (
@@ -89,6 +90,29 @@ func main() {
 
 	if *withCodec {
 		out, err = g.GenerateCodec(targets)
+		if err != nil {
+			emitError(err)
+			return
+		}
+		emitFiles(out)
+	}
+
+	if *withSwagger {
+		gsw := genswagger.New(reg)
+		out, err := gsw.Generate(targets)
+		if err != nil {
+			emitError(err)
+			return
+		}
+		fields := make([]generator.TemplateField, len(out))
+		for pos := range out {
+			fields = append(fields, generator.TemplateField{
+				FileName: req.FileToGenerate[pos],
+				Key: "Swagger",
+				Value: out[pos].GetContent(),
+			})
+		}
+		out, err = g.GenerateSwagger(targets, fields...)
 		if err != nil {
 			emitError(err)
 			return

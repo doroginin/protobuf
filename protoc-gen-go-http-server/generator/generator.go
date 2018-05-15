@@ -48,8 +48,8 @@ func (g *Generator) GenerateHandlers(targets []*descriptor.File) (files []*plugi
 	return files, nil
 }
 
-func (g *Generator) GenerateSwagger(targets []*descriptor.File) (files []*plugin_go.CodeGeneratorResponse_File, err error) {
-	ff, err := g.buildFiles(targets, ServerTemplate)
+func (g *Generator) GenerateSwagger(targets []*descriptor.File, fields... TemplateField) (files []*plugin_go.CodeGeneratorResponse_File, err error) {
+	ff, err := g.buildFiles(targets, SwaggerTemplate, fields...)
 	if err != nil {
 		return nil, err
 	}
@@ -75,11 +75,11 @@ func (g *Generator) GenerateCodec(targets []*descriptor.File) (files []*plugin_g
 	return files, nil
 }
 
-func (g *Generator) buildFiles(targets []*descriptor.File, tmpl *Template) (files []*plugin_go.CodeGeneratorResponse_File, err error) {
+func (g *Generator) buildFiles(targets []*descriptor.File, tmpl *Template, fields... TemplateField) (files []*plugin_go.CodeGeneratorResponse_File, err error) {
 	for _, file := range targets {
 		log.Printf("Processing %s -> %s", file.GetName(), fmt.Sprintf(tmpl.FileName, file.GetName()))
 
-		code, err := g.generateFrom(file, tmpl.Body)
+		code, err := g.generateFrom(file, tmpl.Body, fields...)
 		if err == errNoTargetService {
 			log.Printf("%s: %v", file.GetName(), err)
 			continue
@@ -109,14 +109,19 @@ func (g *Generator) buildFiles(targets []*descriptor.File, tmpl *Template) (file
 	return files, nil
 }
 
-func (g *Generator) generateFrom(file *descriptor.File, t *template.Template) (string, error) {
+func (g *Generator) generateFrom(file *descriptor.File, t *template.Template, fields... TemplateField) (string, error) {
 	pkgSeen := make(map[string]bool)
 	var imports []descriptor.GoPackage
 	tFileInfo := &templateFileInfo{
 		Source:  file.GetName(),
 		Package: file.GoPkg.Name,
+		Fields:  make(map[string]interface{}),
 	}
-
+	for _, f := range fields {
+		if f.FileName == tFileInfo.Source {
+			tFileInfo.Fields[f.Key] = f.Value
+		}
+	}
 	for _, svc := range file.Services {
 		tService := &templateService{Name: svc.GetName()}
 		tFileInfo.Services = append(tFileInfo.Services, tService)
