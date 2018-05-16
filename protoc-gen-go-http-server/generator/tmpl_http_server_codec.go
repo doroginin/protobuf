@@ -55,8 +55,17 @@ func (c *{{ $service.Name }}Codec) ReadRequest(req *http.Request) (*http.Request
 						return req, "", nil, types.ErrMethodNotFound
 					}
 					data := &{{ $handler.In }}{}
-					for k, v := range dataMap {
-						runtime.PopulateFieldFromPath(data, k, v)
+					if req.Method == "GET" {
+						for k, v := range dataMap {
+							runtime.PopulateFieldFromPath(data, k, v)
+						}
+					} else {
+						decoder := json.NewDecoder(req.Body)
+						err := decoder.Decode(data)
+						req.Body.Close()
+						if err != nil {
+							return req, "", nil, fmt.Errorf("Could not decode request: %s, ", err)
+						}
 					}
 					return req.WithContext(_{{ $service.Name }}NewContext(req.Context(), &_{{ $service.Name }}CodecData{
 						method: "{{ $handler.Name }}",

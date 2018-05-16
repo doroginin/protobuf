@@ -40,8 +40,17 @@ func (c *StringsCodec) ReadRequest(req *http.Request) (*http.Request, string, in
 			return req, "", nil, types.ErrMethodNotFound
 		}
 		data := &StringRequest{}
-		for k, v := range dataMap {
-			runtime.PopulateFieldFromPath(data, k, v)
+		if req.Method == "GET" {
+			for k, v := range dataMap {
+				runtime.PopulateFieldFromPath(data, k, v)
+			}
+		} else {
+			decoder := json.NewDecoder(req.Body)
+			err := decoder.Decode(data)
+			req.Body.Close()
+			if err != nil {
+				return req, "", nil, fmt.Errorf("Could not decode request: %s, ", err)
+			}
 		}
 		return req.WithContext(_StringsNewContext(req.Context(), &_StringsCodecData{
 			method:  "ToUpper",
@@ -60,8 +69,17 @@ func (c *StringsCodec) ReadRequest(req *http.Request) (*http.Request, string, in
 			return req, "", nil, types.ErrMethodNotFound
 		}
 		data := &StringRequest{}
-		for k, v := range dataMap {
-			runtime.PopulateFieldFromPath(data, k, v)
+		if req.Method == "GET" {
+			for k, v := range dataMap {
+				runtime.PopulateFieldFromPath(data, k, v)
+			}
+		} else {
+			decoder := json.NewDecoder(req.Body)
+			err := decoder.Decode(data)
+			req.Body.Close()
+			if err != nil {
+				return req, "", nil, fmt.Errorf("Could not decode request: %s, ", err)
+			}
 		}
 		return req.WithContext(_StringsNewContext(req.Context(), &_StringsCodecData{
 			method:  "ToUpper",
@@ -69,21 +87,33 @@ func (c *StringsCodec) ReadRequest(req *http.Request) (*http.Request, string, in
 		})), "ToUpper", data, nil
 	}
 
-	if len(components) == 2 && components[0] == "Strings" && components[1] == "ToLower" {
+	if idx := strings.LastIndex(components[l-1], ":"); idx == 0 {
+		return req, "", nil, types.ErrMethodNotFound
+	} else if idx > 0 {
+		c := components[l-1]
+		components[l-1], verb = c[:idx], c[idx+1:]
+	}
+	if dataMap, err := pattern_Strings_ToLower_0.Match(components, verb); err == nil {
 		if req.Method != "POST" {
 			return req, "", nil, types.ErrMethodNotFound
 		}
 		data := &StringRequest{}
-		decoder := json.NewDecoder(req.Body)
-		err := decoder.Decode(data)
-		req.Body.Close()
-		if err == nil {
-			return req.WithContext(_StringsNewContext(req.Context(), &_StringsCodecData{
-				method:  "ToLower",
-				request: data,
-			})), "ToLower", data, nil
+		if req.Method == "GET" {
+			for k, v := range dataMap {
+				runtime.PopulateFieldFromPath(data, k, v)
+			}
+		} else {
+			decoder := json.NewDecoder(req.Body)
+			err := decoder.Decode(data)
+			req.Body.Close()
+			if err != nil {
+				return req, "", nil, fmt.Errorf("Could not decode request: %s, ", err)
+			}
 		}
-		return req, "", nil, fmt.Errorf("Could not decode request: %s, ", err)
+		return req.WithContext(_StringsNewContext(req.Context(), &_StringsCodecData{
+			method:  "ToLower",
+			request: data,
+		})), "ToLower", data, nil
 	}
 
 	return req, "", nil, types.ErrMethodNotFound
@@ -134,4 +164,6 @@ var (
 	pattern_Strings_ToUpper_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"strings", "to_upper", "str"}, ""))
 
 	pattern_Strings_ToUpper_1 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"v1", "strings", "to_upper", "str"}, ""))
+
+	pattern_Strings_ToLower_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"strings", "to_lower"}, ""))
 )

@@ -34,6 +34,32 @@ var _swaggerJSON = []byte(`{
     "application/json"
   ],
   "paths": {
+    "/strings/to_lower": {
+      "post": {
+        "operationId": "ToLower",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/StringResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/StringRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Strings"
+        ]
+      }
+    },
     "/strings/to_upper/{str}": {
       "get": {
         "operationId": "ToUpper",
@@ -84,6 +110,14 @@ var _swaggerJSON = []byte(`{
     }
   },
   "definitions": {
+    "StringRequest": {
+      "type": "object",
+      "properties": {
+        "str": {
+          "type": "string"
+        }
+      }
+    },
     "StringResponse": {
       "type": "object",
       "properties": {

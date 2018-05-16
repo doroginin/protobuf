@@ -13,7 +13,12 @@ service Strings {
 			}
 		};
     }
-    rpc ToLower (StringRequest) returns (StringResponse) {}
+    rpc ToLower (StringRequest) returns (StringResponse) {
+        option (google.api.http) = {
+            post: "/strings/to_lower"
+            body: "*"
+        };
+    }
 }
 
 message StringRequest {
