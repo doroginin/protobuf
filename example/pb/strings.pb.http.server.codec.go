@@ -6,11 +6,11 @@ package strings
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net/http"
 	"strings"
 
+	"github.com/doroginin/protobuf/protoc-gen-go-http-server/types"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 )
 
@@ -30,14 +30,14 @@ func (c *StringsCodec) ReadRequest(req *http.Request) (*http.Request, string, in
 	var verb string
 
 	if idx := strings.LastIndex(components[l-1], ":"); idx == 0 {
-		return req, "", nil, errors.New("method is not found")
+		return req, "", nil, types.ErrMethodNotFound
 	} else if idx > 0 {
 		c := components[l-1]
 		components[l-1], verb = c[:idx], c[idx+1:]
 	}
 	if dataMap, err := pattern_Strings_ToUpper_0.Match(components, verb); err == nil {
 		if req.Method != "GET" {
-			return req, "", nil, fmt.Errorf("expected %s method", "GET")
+			return req, "", nil, types.ErrMethodNotFound
 		}
 		data := &StringRequest{}
 		for k, v := range dataMap {
@@ -50,14 +50,14 @@ func (c *StringsCodec) ReadRequest(req *http.Request) (*http.Request, string, in
 	}
 
 	if idx := strings.LastIndex(components[l-1], ":"); idx == 0 {
-		return req, "", nil, errors.New("method is not found")
+		return req, "", nil, types.ErrMethodNotFound
 	} else if idx > 0 {
 		c := components[l-1]
 		components[l-1], verb = c[:idx], c[idx+1:]
 	}
 	if dataMap, err := pattern_Strings_ToUpper_1.Match(components, verb); err == nil {
 		if req.Method != "GET" {
-			return req, "", nil, fmt.Errorf("expected %s method", "GET")
+			return req, "", nil, types.ErrMethodNotFound
 		}
 		data := &StringRequest{}
 		for k, v := range dataMap {
@@ -71,7 +71,7 @@ func (c *StringsCodec) ReadRequest(req *http.Request) (*http.Request, string, in
 
 	if len(components) == 2 && components[0] == "Strings" && components[1] == "ToLower" {
 		if req.Method != "POST" {
-			return req, "", nil, errors.New("excepted POST method")
+			return req, "", nil, types.ErrMethodNotFound
 		}
 		data := &StringRequest{}
 		decoder := json.NewDecoder(req.Body)
@@ -86,7 +86,7 @@ func (c *StringsCodec) ReadRequest(req *http.Request) (*http.Request, string, in
 		return req, "", nil, fmt.Errorf("Could not decode request: %s, ", err)
 	}
 
-	return req, "", nil, errors.New("method is not found")
+	return req, "", nil, types.ErrMethodNotFound
 }
 
 func (c *StringsCodec) WriteResponse(w http.ResponseWriter, resp interface{}, err error) error {

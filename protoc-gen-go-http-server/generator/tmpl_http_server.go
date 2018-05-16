@@ -41,9 +41,16 @@ func WithCodec(c types.Codec) {{ $service.Name }}HTTPServerOption {
 	}
 }
 
+func WithFallbackHandler(h http.Handler) {{ $service.Name }}HTTPServerOption {
+	return func(opts *_StringsHTTPServerOptions) {
+		opts.fallback = h
+	}
+}
+
 type _{{ $service.Name }}HTTPServerOptions struct{
 	srv {{ $service.Name }}Server
 	cdc types.Codec
+	fallback http.Handler
 }
 
 var default{{ $service.Name }}HTTPServerOptions _{{ $service.Name }}HTTPServerOptions
@@ -72,6 +79,10 @@ func (s *{{ $service.Name }}HTTPServer) ServeHTTP(w http.ResponseWriter, r *http
 		return		
 	}
 	r, method, _, err := s.opts.cdc.ReadRequest(r)
+	if err == types.ErrMethodNotFound && s.opts.fallback != nil {
+		s.opts.fallback.ServeHTTP(w, r)
+		return
+	}
 	if err != nil {
 		s.opts.cdc.WriteResponse(w, nil, err)
 		return

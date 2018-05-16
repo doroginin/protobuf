@@ -17,16 +17,21 @@ package {{ .Package }}
 
 import (
 	"net/http"
+
+	"github.com/doroginin/protobuf/protoc-gen-go-http-server/swagger"
 )
 
 {{ range $sIdx, $service := .Services }}
 
-func (s *{{ $service.Name }}HTTPServer) Swagger(w http.ResponseWriter, r *http.Request) {
+var SwaggerJSONHandler = http.HandlerFunc(func (w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/javascript")
 	w.WriteHeader(http.StatusOK)
-	w.Write(_swagger)
-}
+	w.Write(_swaggerJSON)
+})
+
+var SwaggerUIHandler = swaggerui.NewHTTPHandler() 
 
 {{ end }}
 
-var _swagger = []byte(` + "`" + `{{ escape (.Fields.Swagger) }}` + `` + "`)" + `
+var _swaggerJSON = []byte(` + "`" + `{{ escape (.Fields.Swagger) }}` + `` + "`)" + `
 `))}

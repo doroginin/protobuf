@@ -7,5 +7,8 @@ import (
 )
 
 func main() {
-	http.ListenAndServe(":8080", strings.NewStringsHTTPServer())
+	swg := http.NewServeMux()
+	swg.Handle("/docs/swagger.json", strings.SwaggerJSONHandler)
+	swg.Handle("/docs/", http.StripPrefix("/docs", strings.SwaggerUIHandler))
+	http.ListenAndServe(":8080", strings.NewStringsHTTPServer(strings.WithFallbackHandler(swg)))
 }

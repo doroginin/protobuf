@@ -19,10 +19,10 @@ import (
 	"fmt"
 	"context"
 	"strings"
-	"errors"
 	"net/http"
 	"encoding/json"
 
+	"github.com/doroginin/protobuf/protoc-gen-go-http-server/types"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 )
 
@@ -45,14 +45,14 @@ func (c *{{ $service.Name }}Codec) ReadRequest(req *http.Request) (*http.Request
 		{{ if $handler.Bindings }}
    			{{ range $bId, $binding := $handler.Bindings }}
 				if idx := strings.LastIndex(components[l-1], ":"); idx == 0 {
-					return req, "", nil, errors.New("method is not found")
+					return req, "", nil, types.ErrMethodNotFound
 				} else if idx > 0 {
 					c := components[l-1]
 					components[l-1], verb = c[:idx], c[idx+1:]
 				}
 				if dataMap, err := pattern_{{ $service.Name }}_{{ $handler.Name }}_{{ $binding.Index }}.Match(components, verb); err == nil {
 					if req.Method != "{{ $binding.HTTPMethod }}" {
-						return req, "", nil, fmt.Errorf("expected %s method", "{{ $binding.HTTPMethod }}")
+						return req, "", nil, types.ErrMethodNotFound
 					}
 					data := &{{ $handler.In }}{}
 					for k, v := range dataMap {
@@ -67,7 +67,7 @@ func (c *{{ $service.Name }}Codec) ReadRequest(req *http.Request) (*http.Request
 		{{ else }}
 			if len(components) == 2 && components[0] == "{{ $service.Name }}" && components[1] == "{{ $handler.Name }}" {
 				if req.Method != "POST" {
-					return req, "", nil, errors.New("excepted POST method")
+					return req, "", nil, types.ErrMethodNotFound
 				}
 				data := &{{ $handler.In }}{}
 				decoder := json.NewDecoder(req.Body)
@@ -83,7 +83,7 @@ func (c *{{ $service.Name }}Codec) ReadRequest(req *http.Request) (*http.Request
 			}
 		{{ end }}
 	{{ end }}
-	return req, "", nil, errors.New("method is not found")
+	return req, "", nil, types.ErrMethodNotFound
 }
 
 func (c *{{ $service.Name }}Codec) WriteResponse(w http.ResponseWriter, resp interface{}, err error) error {
