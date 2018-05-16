@@ -44,6 +44,16 @@ Check url: `http://localhost:8080/strings/upper/test` and you will get result:
 }
 ```
 Profit
+5. Add swagger if you want:
+```go
+func main () {
+		swg := http.NewServeMux()
+    	swg.Handle("/docs/swagger.json", strings.SwaggerJSONHandler)
+    	swg.Handle("/docs/", http.StripPrefix("/docs", strings.SwaggerUIHandler))
+		http.ListenAndServe(":8080", strings.NewStringsHTTPServer(strings.WithFallbackHandler(swg)))
+}
+```
+and check `http://localhost:8080/docs`
 
 # More options
 Available `protoc-gen-go-http-server` options:
